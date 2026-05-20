@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Edukasi: Perkalian Penjumlahan Berulang</title>
+    <style>
+        /* =========================================
+           CSS VARIABLES & THEME
+           ========================================= */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+        :root {
+            --primary: #4ADE80; /* Pastel Green */
+            --primary-shadow: #22C55E;
+            --secondary: #60A5FA; /* Bright Blue */
+            --secondary-shadow: #3B82F6;
+            --accent: #FBBF24; /* Warm Yellow */
+            --accent-shadow: #F59E0B;
+            --danger: #FF7193; /* Soft Pink/Red */
+            --danger-shadow: #E11D48;
+            --purple: #C084FC;
+            --purple-shadow: #9333EA;
+            --bg-color: #E0F2FE;
+            --text-main: #1E293B;
+            --text-light: #FFFFFF;
+            
+            --font-main: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Prevent text selection */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.4) 0%, transparent 20%);
+            touch-action: manipulation;
+        }
+
+        /* =========================================
+           GLOBAL UI COMPONENTS (3D & CUTE)
+           ========================================= */
+        .btn-3d {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-light);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.1s ease;
+            position: relative;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .btn-3d:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 0 inset rgba(0,0,0,0.1) !important;
+        }
+
+        .btn-primary { background: var(--primary); box-shadow: 0 8px 0 var(--primary-shadow), 0 15px 20px rgba(0,0,0,0.2); }
+        .btn-secondary { background: var(--secondary); box-shadow: 0 8px 0 var(--secondary-shadow), 0 15px 20px rgba(0,0,0,0.2); }
+        .btn-accent { background: var(--accent); box-shadow: 0 8px 0 var(--accent-shadow), 0 15px 20px rgba(0,0,0,0.2); }
+        .btn-danger { background: var(--danger); box-shadow: 0 8px 0 var(--danger-shadow), 0 15px 20px rgba(0,0,0,0.2); }
+        .btn-purple { background: var(--purple); box-shadow: 0 8px 0 var(--purple-shadow), 0 15px 20px rgba(0,0,0,0.2); }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .screen.active {
+            display: flex;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Header UI (Back button, Stars) */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .btn-back {
+            background: white;
+            color: var(--danger);
+            border: 4px solid var(--danger);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--danger-shadow);
+            transition: all 0.1s;
+        }
+        .btn-back:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--danger-shadow); }
+
+        .star-counter {
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--accent-shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 3px solid var(--accent);
+        }
+
+        /* =========================================
+           SCREEN 1: SPLASH SCREEN (PPG UNEJ)
+           ========================================= */
+        #splash-screen {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+        
+        .glow-text {
+            font-size: 3rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px var(--secondary), 0 0 30px var(--primary);
+            animation: pulseGlow 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        .sub-glow-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+            margin-bottom: 50px;
+        }
+
+        .floating-math {
+            position: absolute;
+            font-size: 2rem;
+            color: rgba(255,255,255,0.3);
+            font-weight: bold;
+            animation: floatUp 5s linear infinite;
+        }
+
+        /* =========================================
+           SCREEN 2: MAIN MENU
+           ========================================= */
+        #menu-screen {
+            background: linear-gradient(to bottom, #87CEEB, #E0F2FE);
+            padding: 20px;
+            justify-content: flex-start;
+            padding-top: 100px;
+        }
+
+        .menu-title {
+            font-size: 3rem;
+            color: white;
+            text-shadow: 0 4px 0 #3B82F6, 0 6px 15px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+            -webkit-text-stroke: 2px #1E3A8A;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 25px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 0 #CBD5E1, 0 15px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            border: 4px solid white;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05) translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .game-card.completed::after {
+            content: '⭐ Selesai';
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 var(--accent-shadow);
+            transform: rotate(10deg);
+            border: 3px solid white;
+        }
+
+        .card-icon { font-size: 4rem; margin-bottom: 10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
+        .card-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
+        .card-desc { font-size: 1rem; color: #64748B; margin-bottom: 15px; font-weight: 700;}
+
+        /* Mascot */
+        .mascot-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            animation: float 3s ease-in-out infinite;
+            z-index: 40;
+        }
+        
+        .mascot-speech {
+            position: absolute;
+            top: -60px;
+            right: 80px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border-bottom-right-radius: 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-weight: bold;
+            color: var(--secondary-shadow);
+            white-space: nowrap;
+            border: 3px solid var(--secondary);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* =========================================
+           GAME CONTAINERS & UI
+           ========================================= */
+        .game-board {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 30px;
+            width: 95%;
+            max-width: 900px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1), inset 0 0 0 5px rgba(255,255,255,0.5);
+            border: 5px solid var(--secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            text-align: center;
+            margin-bottom: 20px;
+            background: var(--bg-color);
+            padding: 15px 30px;
+            border-radius: 20px;
+            border: 3px dashed var(--secondary);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background: #E2E8F0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 2px solid #CBD5E1;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #86efac);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Game 1: Hitung Kelompok */
+        .group-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .item-group {
+            background: #F1F5F9;
+            border: 4px solid var(--secondary);
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            min-width: 100px;
+            min-height: 100px;
+            box-shadow: 0 8px 0 #CBD5E1;
+        }
+        .item-emoji { font-size: 2.5rem; animation: popIn 0.3s ease; }
+        
+        .answer-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Game 2: Pilih Jawaban (Jumbo) */
+        .jumbo-equation {
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--secondary-shadow);
+            text-shadow: 4px 4px 0 white, 8px 8px 0 var(--secondary);
+            margin: 40px 0;
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .jumbo-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .btn-jumbo {
+            font-size: 3rem;
+            padding: 20px 40px;
+            border-radius: 30px;
+        }
+
+        /* Game 3: Drag & Drop (Tap to place for mobile reliability) */
+        .dnd-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+        }
+        .dnd-source {
+            background: #FEF3C7;
+            padding: 20px;
+            border-radius: 20px;
+            border: 4px dashed var(--accent);
+            display: flex;
+            gap: 10px;
+            min-height: 100px;
+            align-items: center;
+            cursor: pointer;
+        }
+        .dnd-source.active { background: #FDE68A; border-style: solid; }
+        .dnd-targets {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .dnd-target {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border: 4px solid var(--secondary);
+            border-radius: 20px;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            padding: 10px;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dnd-target:active { transform: scale(0.95); background: #EFF6FF; }
+        .dnd-item { font-size: 2rem; pointer-events: none; }
+        
+        /* Game 4: Tangkap Angka (Arcade) */
+        #game4-screen .game-board { height: 80vh; justify-content: flex-start; overflow: hidden; background: linear-gradient(to bottom, #1E3A8A, #3B82F6); border-color: white;}
+        #game4-screen .question-text { color: white; background: rgba(0,0,0,0.3); border: 2px solid white; text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10;}
+        .falling-object {
+            position: absolute;
+            background: white;
+            border: 5px solid var(--accent);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            box-shadow: 0 10px 0 var(--accent-shadow), 0 15px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+            z-index: 5;
+        }
+        .falling-object:active { transform: scale(0.8); }
+        .arcade-ground {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 50px;
+            background: #22C55E;
+            border-top: 10px solid #16A34A;
+            z-index: 2;
+        }
+
+        /* Feedback Overlay */
+        .feedback-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: 25px;
+        }
+        .feedback-overlay.active { display: flex; animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .feedback-icon { font-size: 8rem; margin-bottom: 20px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2)); }
+        .feedback-text { font-size: 3rem; font-weight: 900; color: var(--primary-shadow); text-transform: uppercase; -webkit-text-stroke: 1px white;}
+        .feedback-text.wrong { color: var(--danger-shadow); }
+
+        /* Celebration Screen */
+        #celebration-screen {
+            background: linear-gradient(135deg, var(--accent), var(--danger));
+            color: white;
+            text-align: center;
+            z-index: 200;
+        }
+        .trophy { font-size: 10rem; animation: bounce 2s infinite; filter: drop-shadow(0 20px 20px rgba(0,0,0,0.4)); }
+        .celeb-title { font-size: 4rem; font-weight: 900; text-shadow: 0 5px 0 #B45309; margin: 20px 0; -webkit-text-stroke: 2px white;}
+        .celeb-subtitle { font-size: 1.8rem; font-weight: 700; background: rgba(255,255,255,0.2); padding: 10px 30px; border-radius: 50px; }
+
+        /* =========================================
+           ANIMATIONS
+           ========================================= */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+        @keyframes zoomIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes bounceIn { 0% { transform: scale(0.1); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px var(--secondary), 0 0 30px var(--primary); } 50% { text-shadow: 0 0 20px rgba(255,255,255,1), 0 0 40px var(--secondary), 0 0 50px var(--primary); } }
+        @keyframes floatUp { 0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 20% { opacity: 0.5; } 80% { opacity: 0.5; } 100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-30px); } 60% { transform: translateY(-15px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        /* Confetti Canvas */
+        #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .btn-3d { font-size: 1.2rem; padding: 10px 20px; }
+            .glow-text { font-size: 2rem; }
+            .sub-glow-text { font-size: 1.2rem; }
+            .menu-title { font-size: 2rem; }
+            .game-grid { grid-template-columns: 1fr; }
+            .question-text { font-size: 1.8rem; padding: 10px; }
+            .jumbo-equation { font-size: 4rem; margin: 20px 0; }
+            .btn-jumbo { font-size: 2rem; padding: 15px 30px; }
+            .card-icon { font-size: 3rem; }
+            .celeb-title { font-size: 2.5rem; }
+            .mascot-container { width: 90px; right: 10px; bottom: 10px;}
+            .mascot-speech { font-size: 0.9rem; right: 60px; top: -50px;}
+            .top-bar { top: 10px; left: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- UI: Top Bar (Hidden on Splash) -->
+    <div id="top-bar" class="top-bar" style="display: none;">
+        <button class="btn-back" onclick="goHome()" id="btn-back">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="star-counter">
+            ⭐ <span id="total-stars">0</span>
+        </div>
+    </div>
+
+    <!-- SCREEN 1: SPLASH SCREEN -->
+    <div id="splash-screen" class="screen active">
+        <div id="splash-bg"></div>
+        <div class="glow-text">HASIL KARYA<br>PPG PRAJABATAN UNEJ 2026</div>
+        <div class="sub-glow-text">PPL 01 - PGSD 05</div>
+        <button class="btn-3d btn-primary" onclick="startGame()" style="font-size: 2rem; padding: 20px 50px; animation: bounceIn 1s delay-1s forwards;">
+            MULAI BERMAIN
+        </button>
+    </div>
+
+    <!-- SCREEN 2: MAIN MENU -->
+    <div id="menu-screen" class="screen">
+        <h1 class="menu-title">Pilih Permainanmu!</h1>
+        <div class="game-grid">
+            <div class="game-card" id="card-game1" onclick="initGame(1)">
+                <div class="card-icon">🍎</div>
+                <div class="card-title">Hitung Kelompok</div>
+                <div class="card-desc">Belajar dari kelompok benda nyata!</div>
+                <button class="btn-3d btn-primary">Mainkan</button>
+            </div>
+            <div class="game-card" id="card-game2" onclick="initGame(2)">
+                <div class="card-icon">❓</div>
+                <div class="card-title">Pilih Jawaban</div>
+                <div class="card-desc">Tebak hasil perkalian dengan cepat!</div>
+                <button class="btn-3d btn-secondary">Mainkan</button>
+            </div>
+            <div class="game-card" id="card-game3" onclick="initGame(3)">
+                <div class="card-icon">🧺</div>
+                <div class="card-title">Isi Keranjang</div>
+                <div class="card-desc">Susun benda sesuai dengan soal!</div>
+                <button class="btn-3d btn-accent">Mainkan</button>
+            </div>
+            <div class="game-card" id="card-game4" onclick="initGame(4)">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Tangkap Angka</div>
+                <div class="card-desc">Tangkap jawaban yang berjatuhan!</div>
+                <button class="btn-3d btn-purple">Mainkan</button>
+            </div>
+        </div>
+
+        <!-- Robot Mascot -->
+        <div class="mascot-container">
+            <div class="mascot-speech" id="mascot-speech">Ayo kumpulkan semua bintang!</div>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- Body -->
+                <rect x="25" y="30" width="50" height="60" rx="15" fill="#60A5FA" stroke="#1E3A8A" stroke-width="4"/>
+                <!-- Screen -->
+                <rect x="35" y="40" width="30" height="20" rx="5" fill="#1E293B" />
+                <!-- Eyes -->
+                <circle cx="43" cy="50" r="4" fill="#4ADE80" >
+                    <animate attributeName="ry" values="4;1;4" dur="3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="57" cy="50" r="4" fill="#4ADE80" >
+                    <animate attributeName="ry" values="4;1;4" dur="3s" repeatCount="indefinite" />
+                </circle>
+                <!-- Wheels -->
+                <circle cx="30" cy="90" r="8" fill="#475569" stroke="#1E293B" stroke-width="3"/>
+                <circle cx="70" cy="90" r="8" fill="#475569" stroke="#1E293B" stroke-width="3"/>
+                <!-- Antenna -->
+                <line x1="50" y1="30" x2="50" y2="10" stroke="#1E3A8A" stroke-width="4"/>
+                <circle cx="50" cy="8" r="5" fill="#FBBF24">
+                    <animate attributeName="fill" values="#FBBF24;#F59E0B;#FBBF24" dur="1s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
+        </div>
+    </div>
+
+    <!-- GAME 1 SCREEN -->
+    <div id="game1-screen" class="screen">
+        <div class="game-board">
+            <div class="progress-bar-container"><div class="progress-bar" id="prog1"></div></div>
+            <div class="question-text" id="q1-text">Berapa total apelnya?</div>
+            <div class="group-container" id="g1-container">
+                <!-- Groups injected here -->
+            </div>
+            <div class="answer-options" id="g1-options">
+                <!-- Buttons injected here -->
+            </div>
+            
+            <div class="feedback-overlay" id="fb1">
+                <div class="feedback-icon" id="fb1-icon">🌟</div>
+                <div class="feedback-text" id="fb1-text">HEBAT!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 2 SCREEN -->
+    <div id="game2-screen" class="screen">
+        <div class="game-board">
+            <div class="progress-bar-container"><div class="progress-bar" id="prog2"></div></div>
+            <div class="question-text">Pilih jawaban yang benar!</div>
+            <div class="jumbo-equation" id="q2-text">3 × 4 = ?</div>
+            <div class="jumbo-options" id="g2-options">
+                <!-- Buttons injected here -->
+            </div>
+
+            <div class="feedback-overlay" id="fb2">
+                <div class="feedback-icon" id="fb2-icon">🌟</div>
+                <div class="feedback-text" id="fb2-text">HEBAT!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 3 SCREEN (Isi Keranjang) -->
+    <div id="game3-screen" class="screen">
+        <div class="game-board" style="max-width: 95%;">
+            <div class="progress-bar-container"><div class="progress-bar" id="prog3"></div></div>
+            <div class="question-text" id="q3-text" style="font-size:1.8rem">Isi 3 keranjang, masing-masing 2 bola!</div>
+            
+            <div class="dnd-area">
+                <div class="dnd-source" id="g3-source" onclick="selectSourceItem()">
+                    <span style="font-size: 1.2rem; font-weight:bold; color:var(--accent-shadow);">Sentuh untuk mengambil:</span>
+                    <span id="g3-source-item" style="font-size: 3rem;">⚽</span>
+                </div>
+                <div class="dnd-targets" id="g3-targets">
+                    <!-- Baskets injected here -->
+                </div>
+            </div>
+            
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn-3d btn-danger" onclick="resetGame3Board()" style="font-size: 1rem; padding: 10px 20px;">Ulangi</button>
+                <button class="btn-3d btn-primary" onclick="checkGame3()" style="font-size: 1rem; padding: 10px 20px;">Cek Jawaban</button>
+            </div>
+
+            <div class="feedback-overlay" id="fb3">
+                <div class="feedback-icon" id="fb3-icon">🌟</div>
+                <div class="feedback-text" id="fb3-text">HEBAT!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME 4 SCREEN (Tangkap Angka) -->
+    <div id="game4-screen" class="screen">
+        <div class="game-board">
+            <div class="progress-bar-container" style="position:absolute; top:20px; width:90%; z-index:10;"><div class="progress-bar" id="prog4"></div></div>
+            <div class="question-text" id="q4-text" style="margin-top: 40px;">2 × 5 = ?</div>
+            
+            <!-- Arcade Game Area -->
+            <div id="arcade-area" style="position:absolute; top:0; left:0; width:100%; height:100%;">
+                <div class="arcade-ground"></div>
+                <!-- Falling objects injected here via JS -->
+            </div>
+
+            <div class="feedback-overlay" id="fb4">
+                <div class="feedback-icon" id="fb4-icon">🌟</div>
+                <div class="feedback-text" id="fb4-text">HEBAT!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CELEBRATION SCREEN -->
+    <div id="celebration-screen" class="screen">
+        <div class="trophy">🏆</div>
+        <div class="celeb-title">SELAMAT!</div>
+        <div class="celeb-subtitle">Kamu sangat hebat dalam perkalian!</div>
+        <div style="margin-top: 30px; font-size: 2rem;">Total Bintang: ⭐ <span id="final-stars">0</span></div>
+        <button class="btn-3d btn-primary" style="margin-top: 40px;" onclick="location.reload()">Main Lagi</button>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* =========================================
+           SOUND SYSTEM (Web Audio API - 100% Offline)
+           ========================================= */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const sounds = {
+            click: () => playTone(600, 'sine', 0.1),
+            correct: () => { playTone(523.25, 'triangle', 0.1); setTimeout(() => playTone(659.25, 'triangle', 0.15), 100); setTimeout(() => playTone(783.99, 'triangle', 0.2), 200); },
+            wrong: () => { playTone(300, 'sawtooth', 0.1); setTimeout(() => playTone(250, 'sawtooth', 0.2), 150); },
+            pop: () => playTone(800, 'sine', 0.05),
+            tada: () => { playTone(440, 'square', 0.1); setTimeout(() => playTone(554, 'square', 0.1), 150); setTimeout(() => playTone(659, 'square', 0.4), 300); }
+        };
+
+        function playTone(freq, type, duration) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        /* =========================================
+           GAME STATE & DATA
+           ========================================= */
+        const state = {
+            screen: 'splash',
+            stars: 0,
+            currentGame: 0,
+            questionsPerGame: 10, // Minimal 10 soal
+            progress: { 1: 0, 2: 0, 3: 0, 4: 0 },
+            completedGames: { 1: false, 2: false, 3: false, 4: false },
+            currentQuestion: null,
+            emojis: ['🍎', '⚽', '🚗', '⭐', '🎈', '🍕', '🧸', '🍓', '🍩'],
+            game4Loop: null
+        };
+
+        /* =========================================
+           CORE NAVIGATION
+           ========================================= */
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const topBar = document.getElementById('top-bar');
+            const btnBack = document.getElementById('btn-back');
+            
+            if (screenId === 'splash-screen' || screenId === 'celebration-screen') {
+                topBar.style.display = 'none';
+            } else {
+                topBar.style.display = 'flex';
+                btnBack.style.visibility = (screenId === 'menu-screen') ? 'hidden' : 'visible';
+            }
+            document.getElementById('total-stars').innerText = state.stars;
+        }
+
+        function startGame() {
+            sounds.correct();
+            createFloatingMathBackground();
+            showScreen('menu-screen');
+            updateMenuUI();
+        }
+
+        function goHome() {
+            sounds.click();
+            cleanupGame4();
+            showScreen('menu-screen');
+            updateMenuUI();
+        }
+
+        function updateMenuUI() {
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById(`card-game${i}`);
+                if (state.completedGames[i]) {
+                    card.classList.add('completed');
+                }
+            }
+            
+            if (Object.values(state.completedGames).every(v => v === true)) {
+                setTimeout(() => {
+                    showScreen('celebration-screen');
+                    document.getElementById('final-stars').innerText = state.stars;
+                    sounds.tada();
+                    fireConfetti(300);
+                }, 1000);
+            }
+        }
+
+        /* =========================================
+           UTILITIES
+           ========================================= */
+        function generateMathProblem(maxMultiplier = 5) {
+            // For Grade 2, keep numbers manageable but cover multiplication concept
+            const a = Math.floor(Math.random() * maxMultiplier) + 2; // 2 to max+1
+            const b = Math.floor(Math.random() * maxMultiplier) + 2;
+            const result = a * b;
+            
+            // Generate wrong answers that make sense
+            let wrong1 = (a + 1) * b;
+            let wrong2 = a * (b + 1);
+            if (wrong1 === wrong2 || wrong1 === result) wrong1 = result - b;
+            if (wrong2 === result) wrong2 = result + a;
+            
+            // Handle negative edge cases
+            if(wrong1 <= 0) wrong1 = result + 2;
+            if(wrong2 <= 0) wrong2 = result + 3;
+
+            const options = [result, wrong1, wrong2].sort(() => Math.random() - 0.5);
+            return { a, b, result, options };
+        }
+
+        function getRandomEmoji() {
+            return state.emojis[Math.floor(Math.random() * state.emojis.length)];
+        }
+
+        function updateProgress(gameId) {
+            const pct = (state.progress[gameId] / state.questionsPerGame) * 100;
+            document.getElementById(`prog${gameId}`).style.width = `${pct}%`;
+        }
+
+        function addStar() {
+            state.stars++;
+            document.getElementById('total-stars').innerText = state.stars;
+            // Pop animation on counter
+            const counter = document.querySelector('.star-counter');
+            counter.style.transform = 'scale(1.2)';
+            setTimeout(() => counter.style.transform = 'scale(1)', 200);
+        }
+
+        function showFeedback(gameId, isCorrect, nextCallback) {
+            const fb = document.getElementById(`fb${gameId}`);
+            const icon = document.getElementById(`fb${gameId}-icon`);
+            const text = document.getElementById(`fb${gameId}-text`);
+            
+            fb.classList.add('active');
+            if (isCorrect) {
+                sounds.correct();
+                icon.innerText = ['🌟', '🎉', '🏆', '🤩'][Math.floor(Math.random()*4)];
+                text.innerText = "HEBAT!";
+                text.className = "feedback-text";
+                addStar();
+                fireConfetti(50);
+            } else {
+                sounds.wrong();
+                icon.innerText = ['😅', '🤔', '💪'][Math.floor(Math.random()*3)];
+                text.innerText = "COBA LAGI!";
+                text.className = "feedback-text wrong";
+                // Shake board
+                const board = document.querySelector(`#game${gameId}-screen .game-board`);
+                board.style.animation = 'shake 0.4s';
+                setTimeout(() => board.style.animation = '', 400);
+            }
+
+            setTimeout(() => {
+                fb.classList.remove('active');
+                if (isCorrect) {
+                    state.progress[gameId]++;
+                    updateProgress(gameId);
+                    if (state.progress[gameId] >= state.questionsPerGame) {
+                        state.completedGames[gameId] = true;
+                        goHome();
+                    } else {
+                        nextCallback();
+                    }
+                }
+            }, 1500);
+        }
+
+        /* =========================================
+           GAME INITIATION ROUTER
+           ========================================= */
+        function initGame(gameId) {
+            sounds.click();
+            state.currentGame = gameId;
+            if (state.completedGames[gameId]) {
+                // Allow replay, reset progress
+                state.progress[gameId] = 0;
+            }
+            updateProgress(gameId);
+            showScreen(`game${gameId}-screen`);
+            
+            if (gameId === 1) renderGame1();
+            if (gameId === 2) renderGame2();
+            if (gameId === 3) renderGame3();
+            if (gameId === 4) renderGame4();
+        }
+
+        /* =========================================
+           GAME 1: Hitung Kelompok
+           ========================================= */
+        function renderGame1() {
+            const q = generateMathProblem(4); // Max 4x4 or 5x5 visually
+            state.currentQuestion = q;
+            const emoji = getRandomEmoji();
+            
+            // Text representation
+            document.getElementById('q1-text').innerHTML = `Ada <b>${q.a}</b> kelompok.<br>Tiap kelompok isi <b>${q.b}</b> ${emoji}.<br>Berapa totalnya?`;
+            
+            // Render groups visually
+            const container = document.getElementById('g1-container');
+            container.innerHTML = '';
+            for (let i = 0; i < q.a; i++) {
+                const group = document.createElement('div');
+                group.className = 'item-group';
+                for (let j = 0; j < q.b; j++) {
+                    const item = document.createElement('span');
+                    item.className = 'item-emoji';
+                    item.innerText = emoji;
+                    item.style.animationDelay = `${(i*q.b + j) * 0.05}s`;
+                    group.appendChild(item);
+                }
+                container.appendChild(group);
+            }
+
+            // Render buttons
+            const optionsContainer = document.getElementById('g1-options');
+            optionsContainer.innerHTML = '';
+            const btnClasses = ['btn-primary', 'btn-secondary', 'btn-accent'];
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-3d ${btnClasses[idx]}`;
+                btn.innerText = opt;
+                btn.onclick = () => checkGame1(opt);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkGame1(answer) {
+            showFeedback(1, answer === state.currentQuestion.result, renderGame1);
+        }
+
+        /* =========================================
+           GAME 2: Pilih Jawaban (Jumbo)
+           ========================================= */
+        function renderGame2() {
+            const q = generateMathProblem(6);
+            state.currentQuestion = q;
+            
+            document.getElementById('q2-text').innerText = `${q.a} × ${q.b} = ?`;
+            
+            const optionsContainer = document.getElementById('g2-options');
+            optionsContainer.innerHTML = '';
+            const btnClasses = ['btn-primary', 'btn-danger', 'btn-purple'];
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-3d btn-jumbo ${btnClasses[idx]}`;
+                btn.innerText = opt;
+                btn.onclick = () => checkGame2(opt);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkGame2(answer) {
+            showFeedback(2, answer === state.currentQuestion.result, renderGame2);
+        }
+
+        /* =========================================
+           GAME 3: Isi Keranjang (Tap to fill)
+           ========================================= */
+        let game3State = { baskets: [], item: '', activeItem: false };
+        
+        function renderGame3() {
+            const q = generateMathProblem(4); // Keep it small for UI fitting
+            state.currentQuestion = q;
+            const emoji = getRandomEmoji();
+            game3State.item = emoji;
+            game3State.activeItem = false;
+            game3State.baskets = Array(q.a).fill(0);
+            
+            document.getElementById('q3-text').innerHTML = `Buat <b>${q.a}</b> kelompok<br>berisi masing-masing <b>${q.b}</b> ${emoji}`;
+            document.getElementById('g3-source-item').innerText = emoji;
+            document.getElementById('g3-source').classList.remove('active');
+            
+            renderGame3Baskets();
+        }
+
+        function renderGame3Baskets() {
+            const targetContainer = document.getElementById('g3-targets');
+            targetContainer.innerHTML = '';
+            game3State.baskets.forEach((count, index) => {
+                const basket = document.createElement('div');
+                basket.className = 'dnd-target';
+                basket.onclick = () => fillBasket(index);
+                
+                // Add items inside
+                for(let i=0; i<count; i++) {
+                    const item = document.createElement('span');
+                    item.className = 'dnd-item';
+                    item.innerText = game3State.item;
+                    item.style.animation = 'popIn 0.2s';
+                    basket.appendChild(item);
+                }
+                
+                // If basket is full (more than requested, show warning color)
+                if (count > state.currentQuestion.b) {
+                    basket.style.borderColor = 'var(--danger)';
+                }
+                targetContainer.appendChild(basket);
+            });
+        }
+
+        function selectSourceItem() {
+            sounds.pop();
+            game3State.activeItem = true;
+            document.getElementById('g3-source').classList.add('active');
+        }
+
+        function fillBasket(index) {
+            if (game3State.activeItem) {
+                sounds.pop();
+                game3State.baskets[index]++;
+                renderGame3Baskets();
+                // Auto deselect to require tapping source again for deliberate action
+                game3State.activeItem = false; 
+                document.getElementById('g3-source').classList.remove('active');
+            }
+        }
+
+        function resetGame3Board() {
+            sounds.click();
+            game3State.baskets = Array(state.currentQuestion.a).fill(0);
+            renderGame3Baskets();
+        }
+
+        function checkGame3() {
+            // Check if every basket has exactly q.b items
+            const q = state.currentQuestion;
+            const isCorrect = game3State.baskets.every(count => count === q.b) && game3State.baskets.length === q.a;
+            showFeedback(3, isCorrect, renderGame3);
+        }
+
+        /* =========================================
+           GAME 4: Tangkap Angka (Arcade)
+           ========================================= */
+        function renderGame4() {
+            const q = generateMathProblem(6);
+            state.currentQuestion = q;
+            document.getElementById('q4-text').innerText = `${q.a} × ${q.b} = ?`;
+            
+            cleanupGame4();
+            spawnGame4Objects();
+            
+            // Movement loop
+            let lastTime = 0;
+            const area = document.getElementById('arcade-area');
+            const height = area.clientHeight;
+            
+            function loop(time) {
+                if (state.screen !== 'game4-screen') return; // Stop if left screen
+                
+                const objects = document.querySelectorAll('.falling-object');
+                objects.forEach(obj => {
+                    let y = parseFloat(obj.dataset.y);
+                    let speed = parseFloat(obj.dataset.speed);
+                    y += speed;
+                    obj.dataset.y = y;
+                    obj.style.transform = `translateY(${y}px)`;
+                    
+                    // Reset to top if touches ground
+                    if (y > height - 80) {
+                        obj.dataset.y = -80;
+                        obj.style.left = `${Math.random() * 80}%`;
+                    }
+                });
+                
+                state.game4Loop = requestAnimationFrame(loop);
+            }
+            state.game4Loop = requestAnimationFrame(loop);
+        }
+
+        function spawnGame4Objects() {
+            const area = document.getElementById('arcade-area');
+            const q = state.currentQuestion;
+            
+            // Create options array ensuring the right answer is there, plus random wrong ones
+            let answersToDrop = [...q.options];
+            // Add a few more wrong answers for density
+            answersToDrop.push(q.result + Math.floor(Math.random()*5)+1);
+            answersToDrop.push(Math.abs(q.result - (Math.floor(Math.random()*3)+1)));
+            
+            answersToDrop.forEach((val, idx) => {
+                const obj = document.createElement('div');
+                obj.className = 'falling-object';
+                obj.innerText = val;
+                
+                // Random position & speed
+                obj.style.left = `${Math.random() * 70 + 10}%`; // 10% to 80% width
+                obj.dataset.y = -Math.random() * 200 - 100; // Start above screen
+                obj.dataset.speed = Math.random() * 1.5 + 1; // Speed 1 to 2.5
+                
+                // Random colors
+                const colors = ['#FBBF24', '#4ADE80', '#60A5FA', '#C084FC', '#F87171'];
+                obj.style.borderColor = colors[idx % colors.length];
+                
+                obj.onclick = () => checkGame4(val, obj);
+                // Touch fallback
+                obj.ontouchstart = (e) => { e.preventDefault(); checkGame4(val, obj); };
+                
+                area.appendChild(obj);
+            });
+        }
+
+        function checkGame4(answer, objElement) {
+            const isCorrect = answer === state.currentQuestion.result;
+            
+            if (isCorrect) {
+                // Visual pop on object
+                objElement.style.transform = 'scale(1.5)';
+                objElement.style.opacity = '0';
+                setTimeout(() => cleanupGame4(), 200); // Stop loop
+                showFeedback(4, true, renderGame4);
+            } else {
+                sounds.wrong();
+                objElement.style.background = 'var(--danger)';
+                objElement.style.color = 'white';
+                setTimeout(() => {
+                    objElement.style.background = 'white';
+                    objElement.style.color = 'var(--text-main)';
+                }, 300);
+            }
+        }
+
+        function cleanupGame4() {
+            if (state.game4Loop) cancelAnimationFrame(state.game4Loop);
+            document.querySelectorAll('.falling-object').forEach(e => e.remove());
+        }
+
+        /* =========================================
+           BACKGROUND EFFECTS & CONFETTI
+           ========================================= */
+        function createFloatingMathBackground() {
+            const splash = document.getElementById('splash-bg');
+            const menu = document.getElementById('menu-screen');
+            const symbols = ['+', '×', '=', '÷', '1', '2', '3', '⭐'];
+            
+            // Create on splash
+            for(let i=0; i<15; i++) {
+                const el = document.createElement('div');
+                el.className = 'floating-math';
+                el.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.animationDuration = `${Math.random() * 5 + 3}s`;
+                el.style.animationDelay = `${Math.random() * 2}s`;
+                el.style.fontSize = `${Math.random() * 2 + 1}rem`;
+                splash.appendChild(el);
+            }
+        }
+
+        function fireConfetti(particleCount = 100) {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#4ADE80', '#60A5FA', '#FBBF24', '#F87171', '#C084FC', '#FFFFFF'];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 + 100,
+                    r: Math.random() * 8 + 4,
+                    dx: Math.random() * 20 - 10,
+                    dy: Math.random() * -20 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.floor(Math.random() * 10) - 10,
+                    tiltAngleInc: (Math.random() * 0.07) + 0.05,
+                    tiltAngle: 0
+                });
+            }
+
+            let animationId;
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let allDead = true;
+                
+                particles.forEach((p) => {
+                    p.tiltAngle += p.tiltAngleInc;
+                    p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                    p.x += Math.sin(p.tiltAngle) * 2;
+                    p.dy += 0.3; // Gravity
+                    p.x += p.dx;
+                    p.y += p.dy;
+                    
+                    if (p.y < canvas.height) allDead = false;
+
+                    ctx.beginPath();
+                    ctx.lineWidth = p.r;
+                    ctx.strokeStyle = p.color;
+                    ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                    ctx.stroke();
+                });
+
+                if (!allDead) {
+                    animationId = requestAnimationFrame(render);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            render();
+        }
+
+        // Initialize background elements on load
+        window.onload = () => {
+            createFloatingMathBackground();
+        };
+
+        // Resize handler for canvas
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>
